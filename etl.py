@@ -222,15 +222,24 @@ def classify_specialty(*texts: str) -> tuple[str | None, str | None]:
     specialty = None
     if any(k in blob for k in ("якіст", "стандарт", "сертиф")):
         specialty = "Якість, стандартизація та сертифікація"
+    elif any(k in blob for k in (
+        "інформаційн", "комп’ютер", "комп'ютер", "автоматизац", "програмн",
+        "робототехн",
+    )):
+        specialty = "Інформаційні технології"
     elif any(k in blob for k in ("енергет", "електро")):
         specialty = "Енергетика та електротехніка"
+    elif any(k in blob for k in ("автомоб", "автотранспорт", "автомобільний транспорт")):
+        specialty = "Автомобільний транспорт"
+    elif any(k in blob for k in ("агроінженер", "агроінж")):
+        specialty = "Агроінженерія"
     elif any(k in blob for k in (
-        "механіз", "механік", "машин", "автомоб", "транспорт", "процеси",
+        "механіз", "механік", "машин", "транспорт", "процеси",
         "обладн", "підйомно", "харчов", "переробн",
     )):
         specialty = "Механізація та машинобудування"
     elif any(k in blob for k in ("агро", "апк")):
-        specialty = "Агроінженерія / АПК"
+        specialty = "Агроінженерія"
     return specialty, degree
 
 
