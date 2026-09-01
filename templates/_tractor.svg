@@ -1,0 +1,53 @@
+<svg class="brand-mark" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="Силует трактора «Універсал-2»">
+  <g fill="currentColor">
+    <!-- радіатор -->
+    <rect x="20" y="44" width="12" height="46" rx="2"/>
+    <!-- капот двигуна -->
+    <path d="M32 50 h70 l-4 34 h-66 z"/>
+    <!-- рама / клиренс -->
+    <rect x="30" y="86" width="150" height="9" rx="2"/>
+    <!-- дві вихлопні труби спереду -->
+    <rect x="40" y="10" width="7" height="42"/>
+    <rect x="38" y="6"  width="11" height="6" rx="1.5"/>
+    <rect x="54" y="4"  width="7" height="48"/>
+    <rect x="52" y="0"  width="11" height="6" rx="1.5"/>
+    <!-- кермова колонка та кермо -->
+    <rect x="112" y="40" width="7" height="46" transform="rotate(20 115 63)"/>
+    <ellipse cx="135" cy="36" rx="15" ry="5.5" transform="rotate(20 135 36)"/>
+    <!-- пружина та сидіння ззаду -->
+    <path d="M150 78 q22 10 40 -10" fill="none" stroke="currentColor" stroke-width="5"/>
+    <path d="M182 54 q13 -3 22 5 q-10 8 -22 4 z"/>
+    <!-- заднє крило -->
+    <path d="M120 92 a44 44 0 0 1 88 0 h-11 a33 33 0 0 0 -66 0 z"/>
+    <!-- причіпна скоба -->
+    <rect x="196" y="92" width="26" height="7" rx="2"/>
+  </g>
+
+  <!-- заднє сталеве колесо з ґрунтозачепами -->
+  <g stroke="currentColor" fill="none">
+    <circle cx="164" cy="96" r="40" stroke-width="6" stroke-dasharray="3 11"/>
+    <circle cx="164" cy="96" r="34" stroke-width="5"/>
+    <g stroke-width="4">
+      <line x1="164" y1="96" x2="164" y2="62"/>
+      <line x1="164" y1="96" x2="193" y2="79"/>
+      <line x1="164" y1="96" x2="193" y2="113"/>
+      <line x1="164" y1="96" x2="164" y2="130"/>
+      <line x1="164" y1="96" x2="135" y2="113"/>
+      <line x1="164" y1="96" x2="135" y2="79"/>
+    </g>
+  </g>
+  <circle cx="164" cy="96" r="7" fill="currentColor"/>
+
+  <!-- переднє колесо (вузьке) -->
+  <g stroke="currentColor" fill="none">
+    <circle cx="44" cy="110" r="21" stroke-width="5" stroke-dasharray="2 8"/>
+    <circle cx="44" cy="110" r="15" stroke-width="4"/>
+    <g stroke-width="3">
+      <line x1="44" y1="110" x2="44" y2="91"/>
+      <line x1="44" y1="110" x2="61" y2="120"/>
+      <line x1="44" y1="110" x2="27" y2="120"/>
+    </g>
+  </g>
+  <circle cx="44" cy="110" r="5" fill="currentColor"/>
+</svg>

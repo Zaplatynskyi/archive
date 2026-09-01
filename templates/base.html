@@ -10,8 +10,11 @@
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="{{ url_for('index') }}">
-      <span class="brand-title">Архів випускників</span>
-      <span class="brand-sub">{{ faculty_name }}</span>
+      {% include "_tractor.svg" %}
+      <span class="brand-text">
+        <span class="brand-title">Архів випускників</span>
+        <span class="brand-sub">{{ faculty_name }}</span>
+      </span>
     </a>
     <nav>
       <a href="{{ url_for('index') }}">Пошук</a>

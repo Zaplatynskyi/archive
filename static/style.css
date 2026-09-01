@@ -35,7 +35,12 @@ a:hover { color: var(--accent); }
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 10px; padding-top: 16px; padding-bottom: 16px;
 }
-.brand { text-decoration: none; color: inherit; display: block; }
+.brand {
+  text-decoration: none; color: inherit;
+  display: flex; align-items: center; gap: 14px;
+}
+.brand-mark { width: 68px; height: auto; flex: none; color: #f4f8fd; }
+.brand-text { display: block; }
 .brand-title { display: block; font-size: 1.35rem; font-weight: 700; letter-spacing: .3px; }
 .brand-sub { display: block; font-size: .82rem; opacity: .85; }
 .site-header nav a {
@@ -160,6 +165,8 @@ ul.names li { break-inside: avoid; margin-bottom: 4px; font-size: .95rem; }
 .site-footer p { margin: 0; color: var(--muted); font-size: .85rem; }
 
 @media (max-width: 620px) {
+  .brand-mark { width: 52px; }
+  .brand-title { font-size: 1.15rem; }
   ul.names { columns: 2; }
   .props { grid-template-columns: 1fr; gap: 2px 0; }
   .props dd { margin-bottom: 10px; }
