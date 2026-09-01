@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_search_form.html" import search_form %}
+{% block title %}Результати пошуку — Архів випускників{% endblock %}
+{% block content %}
+
+<details class="filters" {{ 'open' if not rows }}>
+  <summary>Уточнити пошук</summary>
+  {{ search_form(meta, params) }}
+</details>
+
+<div class="results-head">
+  <h1>
+    {% if total %}Знайдено {{ total }} {{ 'запис' if total % 10 == 1 and total % 100 != 11
+       else 'записи' if total % 10 in [2,3,4] and total % 100 not in [12,13,14] else 'записів' }}{% else %}Нічого не знайдено{% endif %}
+  </h1>
+  {% if params.q %}<p class="q-echo">за запитом «{{ params.q }}»</p>{% endif %}
+</div>
+
+{% if rows %}
+<table class="results">
+  <thead>
+    <tr>
+      <th>Прізвище, ім'я, по батькові</th>
+      <th>Рік</th>
+      <th>Форма</th>
+      <th>Напрям</th>
+      <th>№ архіву</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr onclick="location='{{ url_for('graduate', gid=r['id']) }}'">
+      <td class="name"><a href="{{ url_for('graduate', gid=r['id']) }}">{{ r['full_name'] }}</a></td>
+      <td>{{ r['grad_year'] or '—' }}</td>
+      <td>{{ r['study_form'] or '—' }}</td>
+      <td class="muted">{{ r['specialty'] or (r['degree'] or '—') }}</td>
+      <td class="muted">{{ r['archive_no'] or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pages > 1 %}
+<nav class="pager">
+  {% set base = params %}
+  {% if page > 1 %}
+    <a href="{{ url_for('index', **dict(base, page=page-1)) }}">← Попередня</a>
+  {% endif %}
+  <span>Сторінка {{ page }} з {{ pages }}</span>
+  {% if page < pages %}
+    <a href="{{ url_for('index', **dict(base, page=page+1)) }}">Наступна →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="empty">
+  Спробуйте змінити написання прізвища, прибрати частину фільтрів або
+  скористатися лише прізвищем. Деякі роки випуску ще не внесені до бази —
+  див. <a href="{{ url_for('about') }}">Про архів</a>.
+</p>
+{% endif %}
+
+{% endblock %}

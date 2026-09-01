@@ -1,0 +1,77 @@
+{% macro search_form(meta, params, big=False) %}
+<form class="search-form {{ 'search-form--big' if big else '' }}" method="get" action="{{ url_for('index') }}">
+  <div class="field field--q">
+    <label for="q">Прізвище, ім'я або по батькові</label>
+    <input type="search" id="q" name="q" value="{{ params.q }}"
+           placeholder="напр. Ковальчук Іван" autocomplete="off" autofocus>
+  </div>
+
+  <div class="field">
+    <label for="year">Рік випуску</label>
+    <select id="year" name="year">
+      <option value="">— будь-який —</option>
+      {% for y in meta.years %}
+        <option value="{{ y }}" {{ 'selected' if params.year|string == y|string }}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field field--range">
+    <label>Період</label>
+    <div class="range">
+      <input type="number" name="year_from" value="{{ params.year_from }}"
+             min="{{ meta.years[0] if meta.years }}" max="{{ meta.years[-1] if meta.years }}" placeholder="від">
+      <span>–</span>
+      <input type="number" name="year_to" value="{{ params.year_to }}"
+             min="{{ meta.years[0] if meta.years }}" max="{{ meta.years[-1] if meta.years }}" placeholder="до">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="form">Форма навчання</label>
+    <select id="form" name="form">
+      <option value="">— будь-яка —</option>
+      <option value="денна"  {{ 'selected' if params.form == 'денна' }}>денна</option>
+      <option value="заочна" {{ 'selected' if params.form == 'заочна' }}>заочна</option>
+    </select>
+  </div>
+
+  {% if meta.specialties %}
+  <div class="field">
+    <label for="specialty">Напрям</label>
+    <select id="specialty" name="specialty">
+      <option value="">— будь-який —</option>
+      {% for s in meta.specialties %}
+        <option value="{{ s }}" {{ 'selected' if params.specialty == s }}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% if meta.degrees %}
+  <div class="field">
+    <label for="degree">Освітній рівень</label>
+    <select id="degree" name="degree">
+      <option value="">— будь-який —</option>
+      {% for d in meta.degrees %}
+        <option value="{{ d }}" {{ 'selected' if params.degree == d }}>{{ d }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="field">
+    <label for="sort">Сортування</label>
+    <select id="sort" name="sort">
+      <option value="name"      {{ 'selected' if params.sort == 'name' }}>за прізвищем</option>
+      <option value="year"      {{ 'selected' if params.sort == 'year' }}>рік випуску ↑</option>
+      <option value="year_desc" {{ 'selected' if params.sort == 'year_desc' }}>рік випуску ↓</option>
+    </select>
+  </div>
+
+  <div class="field field--actions">
+    <button type="submit">Шукати</button>
+    <a class="reset" href="{{ url_for('index') }}">Скинути</a>
+  </div>
+</form>
+{% endmacro %}

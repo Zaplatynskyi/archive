@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ g['full_name'] }} — Архів випускників{% endblock %}
+{% block content %}
+
+<p class="back"><a href="javascript:history.back()">← Назад до результатів</a></p>
+
+<article class="card">
+  <h1>{{ g['full_name'] }}</h1>
+  {% if g['full_name_raw'] and g['full_name_raw'] != g['full_name'] %}
+    <p class="raw-name">Як у документі: {{ g['full_name_raw'] }}</p>
+  {% endif %}
+
+  <dl class="props">
+    <dt>Рік випуску</dt><dd>{{ g['grad_year'] or '—' }}</dd>
+    <dt>Форма навчання</dt><dd>{{ g['study_form'] or '—' }}</dd>
+    {% if g['specialty'] %}<dt>Напрям</dt><dd>{{ g['specialty'] }}</dd>{% endif %}
+    {% if g['degree'] %}<dt>Освітній рівень</dt><dd>{{ g['degree'] }}</dd>{% endif %}
+    {% if g['section'] %}<dt>Спеціальність (за описом)</dt><dd>{{ g['section'] }}</dd>{% endif %}
+    <dt>Період навчання</dt>
+    <dd>{{ g['start_date'] or '—' }} — {{ g['end_date'] or '—' }}</dd>
+    {% if g['archive_no'] %}<dt>№ архівної справи</dt><dd>{{ g['archive_no'] }}</dd>{% endif %}
+    {% if g['seq_no'] %}<dt>№ за порядком</dt><dd>{{ g['seq_no'] }}</dd>{% endif %}
+    {% if g['pages'] %}<dt>Кількість аркушів</dt><dd>{{ g['pages'] }}</dd>{% endif %}
+    {% if g['retention'] %}<dt>Термін зберігання</dt><dd>{{ g['retention'] }}</dd>{% endif %}
+    {% if g['note'] %}<dt>Примітка</dt><dd>{{ g['note'] }}</dd>{% endif %}
+  </dl>
+
+  <p class="source">
+    Джерело: <code>{{ g['source_file'] }}</code>
+    {% if g['source_sheet'] %} · аркуш «{{ g['source_sheet'] }}»{% endif %}
+  </p>
+</article>
+
+{% if same_year %}
+<section class="same-year">
+  <h2>Однокурсники ({{ g['grad_year'] }}, {{ g['study_form'] }} форма)</h2>
+  <ul class="names">
+    {% for c in same_year %}
+      <li><a href="{{ url_for('graduate', gid=c['id']) }}">{{ c['full_name'] }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% endblock %}

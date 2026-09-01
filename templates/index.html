@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_search_form.html" import search_form %}
+{% block content %}
+
+<section class="hero">
+  <h1>Пошук у базі випускників</h1>
+  <p class="lead">
+    База містить <strong>{{ '{:,}'.format(meta.total).replace(',', ' ') }}</strong> записів
+    {% if stats %}за {{ stats[0]['grad_year'] }}–{{ stats[-1]['grad_year'] }} роки{% endif %}
+    (денна та заочна форми навчання).
+  </p>
+</section>
+
+{{ search_form(meta, {'q':'','form':'','specialty':'','degree':'','year':'','year_from':'','year_to':'','sort':'name'}, big=True) }}
+
+{% if stats %}
+<section class="years">
+  <h2>Роки випуску</h2>
+  <ul class="year-grid">
+    {% for row in stats %}
+      <li>
+        <a href="{{ url_for('index', year=row['grad_year']) }}">
+          <span class="y">{{ row['grad_year'] }}</span>
+          <span class="n">{{ row['total'] }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% endblock %}

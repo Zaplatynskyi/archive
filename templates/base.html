@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Архів випускників{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-title">Архів випускників</span>
+      <span class="brand-sub">{{ faculty_name }}</span>
+    </a>
+    <nav>
+      <a href="{{ url_for('index') }}">Пошук</a>
+      <a href="{{ url_for('about') }}">Про архів</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>{{ faculty_name }}. Архів даних для довідкових цілей.</p>
+  </div>
+</footer>
+</body>
+</html>
