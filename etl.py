@@ -257,21 +257,56 @@ def year_and_form(rel_parts) -> tuple[int | None, str]:
     return year, form
 
 
-def process_workbook(path: Path, archive_root: Path, records: list, stats: dict):
-    rel = path.relative_to(archive_root)
-    grad_year, form = year_and_form(rel.parts)
-    try:
-        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    except Exception as e:  # noqa: BLE001
-        stats["bad_files"].append(f"{rel}: {e}")
-        return
+def _load_ods(path):
+    """Читає .ods -> [(назва_аркуша, [рядки])]."""
+    from odf.opendocument import load
+    from odf.table import Table, TableRow, TableCell
+    from odf.text import P
 
+    doc = load(str(path))
+    out = []
+    for t in doc.spreadsheet.getElementsByType(Table):
+        rows = []
+        for tr in t.getElementsByType(TableRow):
+            cells = []
+            for tc in tr.getElementsByType(TableCell):
+                rep = int(tc.getAttribute("numbercolumnsrepeated") or 1)
+                rep = min(rep, 40)
+                txt = "\n".join(str(p) for p in tc.getElementsByType(P))
+                cells.extend([txt or None] * rep)
+            rows.append(tuple(cells))
+            if len(rows) > 5000:
+                break
+        out.append((t.getAttribute("name") or "Sheet", rows))
+    return out
+
+
+def _load_sheets(path):
+    if path.suffix.lower() == ".ods":
+        return _load_ods(path)
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    out = []
     for ws in wb.worksheets:
         rows = []
         for i, r in enumerate(ws.iter_rows(values_only=True)):
             rows.append(r)
             if i > 5000:
                 break
+        out.append((ws.title, rows))
+    wb.close()
+    return out
+
+
+def process_workbook(path: Path, archive_root: Path, records: list, stats: dict):
+    rel = path.relative_to(archive_root)
+    grad_year, form = year_and_form(rel.parts)
+    try:
+        sheets = _load_sheets(path)
+    except Exception as e:  # noqa: BLE001
+        stats["bad_files"].append(f"{rel}: {e}")
+        return
+
+    for ws_title, rows in sheets:
         if not any(any(c is not None for c in r) for r in rows):
             continue
         hidx, cols = find_header(rows)
@@ -279,7 +314,7 @@ def process_workbook(path: Path, archive_root: Path, records: list, stats: dict)
             stats["sheets_no_header"] += 1
             continue
 
-        sheet_spec, sheet_degree = classify_specialty(ws.title, path.stem)
+        sheet_spec, sheet_degree = classify_specialty(ws_title, path.stem)
         current_section = None
         name_i = cols["name"]
         prev = {"start": None, "end": None, "retention": None}
@@ -338,7 +373,7 @@ def process_workbook(path: Path, archive_root: Path, records: list, stats: dict)
             end_raw, end_year = parse_date(end_val)
 
             spec, degree = classify_specialty(
-                current_section or "", ws.title, path.stem
+                current_section or "", ws_title, path.stem
             )
             spec = spec or sheet_spec
             degree = degree or sheet_degree
@@ -367,11 +402,10 @@ def process_workbook(path: Path, archive_root: Path, records: list, stats: dict)
                     "note": (str(cell("note")).strip()
                              if cell("note") is not None else None),
                     "source_file": str(rel).replace("\\", "/"),
-                    "source_sheet": ws.title,
+                    "source_sheet": ws_title,
                 }
             )
         stats["sheets_ok"] += 1
-    wb.close()
 
 
 # ---------------------------------------------------------------------------
@@ -430,7 +464,8 @@ def build_database(archive_root: Path, db_path: Path) -> dict:
     if not archive_root.exists():
         raise SystemExit(f"Тека архіву не знайдена: {archive_root}")
 
-    files = sorted(archive_root.rglob("*.xlsx"))
+    files = sorted(p for p in archive_root.rglob("*")
+                   if p.suffix.lower() in (".xlsx", ".ods"))
     files = [f for f in files if not f.name.startswith("~$")]
     stats = {
         "files": len(files),
