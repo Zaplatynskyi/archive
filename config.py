@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # Тека з архівом (68 річних тек + «Заочна форма»). За замовчуванням шукаємо
 # поряд із проєктом.
 ARCHIVE_ROOT = Path(
-    os.environ.get("ARCHIVE_ROOT", BASE_DIR.parent.parent.parent / "Архів випускників")
+    os.environ.get("ARCHIVE_ROOT", BASE_DIR / "Архів випускників")
 ).resolve()
 
 # Файл бази даних SQLite.
