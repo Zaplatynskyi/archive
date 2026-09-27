@@ -108,10 +108,14 @@ def search(args) -> dict:
     if form in FORMS:
         where.append("g.study_form = ?")
         params.append(form)
-    if specialty:
+    if specialty == "__none__":
+        where.append("g.specialty IS NULL")
+    elif specialty:
         where.append("g.specialty = ?")
         params.append(specialty)
-    if degree:
+    if degree == "__none__":
+        where.append("g.degree IS NULL")
+    elif degree:
         where.append("g.degree = ?")
         params.append(degree)
     if year:
@@ -162,10 +166,43 @@ def search(args) -> dict:
 # Маршрути
 # ---------------------------------------------------------------------------
 
+_DRILLDOWN_SKIP_KEYS = ("q", "year_from", "year_to", "degree", "page", "sort", "all")
+
+
+def _is_browsing(args) -> bool:
+    """Просте клацання по року (лише ?year=NNNN) веде в покроковий вибір
+    форми/напряму. Будь-який інший параметр (пошук, сортування, сторінка
+    пейджера, явний скид фільтрів...) означає, що користувач уже працює
+    з формою пошуку — тоді одразу показуємо плаский список результатів."""
+    if any(args.get(k) for k in _DRILLDOWN_SKIP_KEYS):
+        return False
+    return bool(args.get("year", type=int))
+
+
 @app.route("/")
 def index():
     meta = _meta()
     if request.args:
+        if _is_browsing(request.args):
+            year = request.args.get("year", type=int)
+            form = request.args.get("form") or ""
+            if not form:
+                return render_template(
+                    "choose_form.html", meta=meta, year=year, forms=_form_stats(year)
+                )
+            if form in FORMS and not request.args.get("specialty"):
+                return render_template(
+                    "choose_specialty.html", meta=meta, year=year, form=form,
+                    specialties=_specialty_stats(year, form),
+                )
+            specialty = request.args.get("specialty") or ""
+            if form in FORMS and specialty:
+                degrees = _degree_stats(year, form, specialty)
+                if len(degrees) > 1:
+                    return render_template(
+                        "choose_degree.html", meta=meta, year=year, form=form,
+                        specialty=specialty, degrees=degrees,
+                    )
         result = search(request.args)
         return render_template("results.html", meta=meta, **result)
     stats = _year_stats()
@@ -182,6 +219,57 @@ def _year_stats():
            FROM graduates WHERE grad_year IS NOT NULL
            GROUP BY grad_year ORDER BY grad_year"""
     ).fetchall()
+
+
+def _form_stats(year: int):
+    db = get_db()
+    return db.execute(
+        """SELECT study_form, COUNT(*) AS total
+           FROM graduates WHERE grad_year = ?
+           GROUP BY study_form ORDER BY study_form""",
+        (year,),
+    ).fetchall()
+
+
+def _specialty_stats(year: int, form: str):
+    db = get_db()
+    return db.execute(
+        """SELECT specialty, COUNT(*) AS total
+           FROM graduates WHERE grad_year = ? AND study_form = ?
+           GROUP BY specialty ORDER BY specialty IS NULL, specialty""",
+        (year, form),
+    ).fetchall()
+
+
+_DEGREE_ORDER = (
+    "Молодший спеціаліст", "Бакалавр", "Спеціаліст", "Інженер", "Магістр",
+)
+
+
+def _degree_stats(year: int, form: str, specialty: str):
+    db = get_db()
+    where = "grad_year = ? AND study_form = ?"
+    params: list = [year, form]
+    if specialty == "__none__":
+        where += " AND specialty IS NULL"
+    else:
+        where += " AND specialty = ?"
+        params.append(specialty)
+    rows = db.execute(
+        f"SELECT degree, COUNT(*) AS total FROM graduates WHERE {where} GROUP BY degree",
+        params,
+    ).fetchall()
+
+    def sort_key(r):
+        d = r["degree"]
+        if d is None:
+            return (2, "")
+        try:
+            return (0, _DEGREE_ORDER.index(d))
+        except ValueError:
+            return (1, d)
+
+    return sorted(rows, key=sort_key)
 
 
 @app.route("/graduate/<int:gid>")

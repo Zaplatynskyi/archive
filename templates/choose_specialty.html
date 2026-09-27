@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ year }} рік, {{ form }} — Архів випускників{% endblock %}
+{% block content %}
+
+<p class="back"><a href="{{ url_for('index', year=year) }}">← До вибору форми навчання</a></p>
+
+<section class="hero">
+  <h1>{{ year }} рік, {{ form }} форма</h1>
+  <p class="lead">Оберіть напрям підготовки.</p>
+</section>
+
+<ul class="choice-grid choice-grid--list">
+  {% for row in specialties %}
+    <li>
+      <a href="{{ url_for('index', year=year, form=form, specialty=(row['specialty'] or '__none__')) }}">
+        <span class="choice-title">{{ row['specialty'] or 'Без вказаного напряму' }}</span>
+        <span class="choice-count">{{ row['total'] }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<p class="choice-all">
+  <a href="{{ url_for('index', year=year, form=form, all=1) }}">Показати всіх ({{ form }}, {{ year }}) →</a>
+</p>
+
+{% endblock %}

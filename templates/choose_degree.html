@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ year }} рік, {{ specialty if specialty != '__none__' else 'без напряму' }} — Архів випускників{% endblock %}
+{% block content %}
+
+<p class="back">
+  <a href="{{ url_for('index', year=year, form=form) }}">← До вибору напряму</a>
+</p>
+
+<section class="hero">
+  <h1>{{ year }} рік, {{ form }} форма</h1>
+  <p class="lead">
+    {{ specialty if specialty != '__none__' else 'Без вказаного напряму' }} —
+    оберіть освітній рівень.
+  </p>
+</section>
+
+<ul class="choice-grid">
+  {% for row in degrees %}
+    <li>
+      <a href="{{ url_for('index', year=year, form=form, specialty=specialty, degree=(row['degree'] or '__none__')) }}">
+        <span class="choice-title">{{ row['degree'] or 'Без вказаного рівня' }}</span>
+        <span class="choice-count">{{ row['total'] }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<p class="choice-all">
+  <a href="{{ url_for('index', year=year, form=form, specialty=specialty, all=1) }}">
+    Показати всіх ({{ specialty if specialty != '__none__' else 'без напряму' }}, {{ year }}) →
+  </a>
+</p>
+
+{% endblock %}

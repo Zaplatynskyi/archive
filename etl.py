@@ -176,6 +176,40 @@ def looks_like_name(s: str) -> bool:
     return len(tokens) >= 2
 
 
+_LATIN_CYR_MAP = str.maketrans({
+    "A": "А", "B": "В", "C": "С", "D": "Д", "E": "Е", "H": "Н", "I": "І",
+    "K": "К", "M": "М", "O": "О", "P": "Р", "T": "Т", "X": "Х",
+    "a": "а", "c": "с", "d": "д", "e": "е", "i": "і", "o": "о", "p": "р", "x": "х",
+})
+
+# Точкові виправлення за повним співпадінням сирого тексту імені: (а) кілька
+# імен/прізвищ у джерелах передруковані латиницею цілими словами (угорські/
+# іноземні імена в Закарпатті) — літерна заміна-двійник тут не спрацює (немає
+# кириличного відповідника для «V», «F», «L», «N», «r» тощо); (б) поодинокі
+# помилки друку в самих первинних Excel-описах (пропущена літера тощо).
+_NAME_OVERRIDES = {
+    "ГОРБАТЮК Valentin Ivanovich": "ГОРБАТЮК Валентин Іванович",
+    "КУЗЬО Markian Дмитрович": "КУЗЬО Маркіян Дмитрович",
+    "КИKINЧУК Ярослав Миколайович": "КИКІНЧУК Ярослав Миколайович",
+    "MELЬНИК Ярослав Ігорович": "МЕЛЬНИК Ярослав Ігорович",
+    "ПОРОШЕНО Олексій Іванович": "ПОРОШЕНКО Олексій Іванович",
+    "ЖУК Irop Іванович": "ЖУК Ігор Іванович",
+    "МУМИЛО Franz Браниславович": "МУМИЛО Франц Браниславович",
+    "Ombodi Петро Валентинович": "Омбоді Петро Валентинович",
+    "КОЗМА Шанdor Михайлович": "КОЗМА Шандор Михайлович",
+    "ВЕСНИЙ Ігор Володимирович": "ВЕСНІЙ Ігор Володимирович",
+}
+
+
+def fix_latin_lookalikes(s: str) -> str:
+    """Замінює латинські літери-двійники («D» замість «Д», «K» замість «К» ітд.)
+    на кириличні — типова вада ручного набору/OCR у первинних описах."""
+    norm = re.sub(r"\s+", " ", s)
+    if norm in _NAME_OVERRIDES:
+        return _NAME_OVERRIDES[norm]
+    return s.translate(_LATIN_CYR_MAP)
+
+
 def split_name(s: str) -> tuple[str, str, str, str]:
     """Повертає (повне_відображуване, прізвище, ім'я, по-батькові)."""
     s = re.sub(r"\s+", " ", s.replace("\xa0", " ")).strip(" .,;")
@@ -209,12 +243,17 @@ def split_name(s: str) -> tuple[str, str, str, str]:
 
 def classify_specialty(*texts: str) -> tuple[str | None, str | None]:
     blob = " ".join(_norm(t) for t in texts if t)
+    # Назви аркушів часто скорочені («Бак», «Спец.», «Маг» — інколи через
+    # обмеження Excel у 31 символ на назву аркуша обрізане навіть повне
+    # слово, напр. «...Бакалав»), тож перевіряємо префікси, а не лише повні
+    # слова. «спец» навмисно виключає «спеці» — інакше зачепить незв'язане
+    # слово «спеціальність», яке часто трапляється в заголовках описів.
     degree = None
-    if "магістр" in blob:
+    if "маг" in blob:
         degree = "Магістр"
-    elif "бакалавр" in blob:
+    elif "бак" in blob:
         degree = "Бакалавр"
-    elif "спеціаліст" in blob:
+    elif "спеціаліст" in blob or re.search(r"спец(?!і)", blob):
         degree = "Спеціаліст"
     elif "інженер" in blob:
         degree = "Інженер"
@@ -229,15 +268,21 @@ def classify_specialty(*texts: str) -> tuple[str | None, str | None]:
         specialty = "Інформаційні технології"
     elif any(k in blob for k in ("енергет", "електро")):
         specialty = "Енергетика та електротехніка"
-    elif any(k in blob for k in ("автомоб", "автотранспорт", "автомобільний транспорт")):
+    elif (any(k in blob for k in ("автомоб", "автотранспорт", "автомобільний транспорт"))
+          or re.search(r"авт\.?\s*транспорт", blob)):
         specialty = "Автомобільний транспорт"
     elif any(k in blob for k in ("агроінженер", "агроінж")):
         specialty = "Агроінженерія"
-    elif any(k in blob for k in (
-        "механіз", "механік", "машин", "транспорт", "процеси",
-        "обладн", "підйомно", "харчов", "переробн",
-    )):
-        specialty = "Механізація та машинобудування"
+    elif "процеси" in blob:
+        specialty = "Процеси, машини та обладнання агропромислового виробництва"
+    elif "підйомно" in blob:
+        specialty = "Підйомно-транспортні машини і обладнання"
+    elif any(k in blob for k in ("переробн", "харчов")):
+        specialty = "Обладнання переробних і харчових виробництв"
+    elif "машин" in blob:
+        specialty = "Машинобудування"
+    elif any(k in blob for k in ("механіз", "механік", "транспорт", "обладн")):
+        specialty = "Механізація сільського господарства"
     elif any(k in blob for k in ("агро", "апк")):
         specialty = "Агроінженерія"
     return specialty, degree
@@ -336,7 +381,7 @@ def process_workbook(path: Path, archive_root: Path, records: list, stats: dict)
                 if len(non_empty) == 1 and not DIGIT_RE.search(str(non_empty[0])):
                     current_section = str(non_empty[0]).strip()
                 continue
-            s = str(raw).strip()
+            s = fix_latin_lookalikes(str(raw).strip())
 
             if len(non_empty) == 1 and not DIGIT_RE.search(s):
                 current_section = s

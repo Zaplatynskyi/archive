@@ -134,6 +134,24 @@ table.results td.muted { color: var(--muted); font-size: .9rem; }
 .year-grid .y { font-weight: 700; }
 .year-grid .n { font-size: .8rem; color: var(--muted); }
 
+/* Рік → форма → напрям (покроковий вибір) */
+.choice-grid {
+  list-style: none; margin: 0 0 22px; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+}
+.choice-grid a {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  text-decoration: none; background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 16px 18px; color: var(--ink);
+}
+.choice-grid a:hover { border-color: var(--accent); background: #eff5fd; }
+.choice-title { font-weight: 600; }
+.choice-count {
+  color: var(--accent); font-size: .85rem; font-weight: 700; background: var(--accent-soft);
+  padding: 2px 10px; border-radius: 10px; flex: none;
+}
+.choice-all { margin: 4px 0 0; font-size: .95rem; }
+
 /* Graduate card */
 .back { margin: 0 0 16px; }
 .card {
